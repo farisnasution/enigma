@@ -2,7 +2,9 @@
 
 (def -default-settings
   {:type :rule
-   :settings {:message (fn [v] (str "Error! Value is: " v))
+   :settings {:message (fn [v] (if v
+                                (str "Error! Value is: " v)
+                                "Error! Value is nil"))
               :pass-nill? true
               :using []}})
 
