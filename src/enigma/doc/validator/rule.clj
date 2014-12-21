@@ -33,10 +33,6 @@
   (or (not (nil? v))
       (and (nil? v) (false? pass-nill?))))
 
-(defn- construct-rule
-  [r]
-  (into (-> r meta :settings :using) [r]))
-
 (defn- validate-rule
   [r v]
   (let [{:keys [message pass-nill?]} (-> r meta :settings)]
@@ -46,9 +42,19 @@
 
 (defn -validate-rules
   [r v]
-  (let [{:keys [message pass-nill?]} (-> r meta :settings)
-        rules (construct-rule r)]
+  (let [{:keys [using message pass-nill?]} (-> r meta :settings)
+        rules (into using [r])]
     (->> rules
          (map #(validate-rule % v))
          (filter #(not (nil? %)))
          first)))
+
+(defn construct-rule
+  [r opts]
+  (let [m (meta r)
+        new-meta (update-in m
+                            [:settings]
+                            #(into % opts))]
+    (-> r
+        (partial (:settings new-meta))
+        (with-meta new-meta))))
