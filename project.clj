@@ -7,4 +7,7 @@
   :profiles {:dev {:dependencies [[speclj "3.1.0"]]}}
   :plugins [[speclj "3.1.0"]]
   :test-paths ["spec"]
-  :aliases {"dev" ["repl" ":headless"]})
+  :aliases {"dev" ["repl" ":headless"]
+            "omni" ["do" ["ancient"] ["kibit"] ["eastwood"] ["bikeshed"]]}
+  :eastwood {:exclude-linters [:unlimited-use]
+             :exclude-namespaces [:test-paths]})
