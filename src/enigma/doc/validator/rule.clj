@@ -30,8 +30,8 @@
 
 (defn- go-validate?
   [v pass-nill?]
-  (or (not (nil? v))
-      (and (nil? v) (false? pass-nill?))))
+  (boolean (or (not (nil? v))
+               (and (nil? v) (false? pass-nill?)))))
 
 (defn- validate-rule
   [r v]
