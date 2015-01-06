@@ -1,5 +1,5 @@
 (ns enigma.doc.validator
-  (:use [enigma.doc.validator.rule :only [-validate-rules]]))
+  (:use [enigma.doc.validator.core :only [-validate-rules]]))
 
 (defmulti -validate-validator
   (fn [_ value] (type value)))
