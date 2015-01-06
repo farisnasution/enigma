@@ -103,13 +103,13 @@
    :malformed? #(malformed-fn %)})
 
 (defn list-create-resource
-  [db-fn coll-name jsonable-mapper saveable-mapper validator page per-page order]
+  [db-fn coll-name j-mapper s-mapper validator page per-page order]
   (base-list-create-resource :get-entity-fn (get-entity-fn db-fn
                                                            coll-name
-                                                           jsonable-mapper
+                                                           j-mapper
                                                            page
                                                            per-page
                                                            order)
                              :post-entity-fn (post-entity-fn db-fn coll-name)
-                             :malformed-fn (malformed-fn saveable-mapper
+                             :malformed-fn (malformed-fn s-mapper
                                                          validator)))
