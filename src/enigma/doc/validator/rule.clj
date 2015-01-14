@@ -1,155 +1,51 @@
 (ns enigma.doc.validator.rule
-  (:require [enigma.doc.validator.core :as vc]))
+  (:use enigma.doc.validator.core))
 
-(vc/defrule required
-  {:message (fn [settings value] "Value cannot be nil.")
-   :pass-nill? false}
-  [_ value]
-  (not (nil? value)))
+(def -default-settings
+  {:pass-nill? true
+   :message (fn [settings data] (format "Error: %s" data))})
 
-(vc/defrule str-only
-  {:message (fn [_ value]
-              (str "Value should be string: " value))}
-  [_ value]
-  (string? value))
+(defn- go?
+  [data pass-nill?]
+  (boolean (or (not (nil? data))
+               (and (nil? data) (false? pass-nill?)))))
 
-(vc/defrule min-length
-  {:threshold -1
-   :message (fn [{:keys [threshold]} value]
-              (str "Value's length is below or equal to threshold. "
-                   "Value: " value "."
-                   "Threshold: " threshold "."))}
-  [{:keys [threshold]} value]
-  (or (= threshold -1) (> (count value) threshold)))
+(defn- validate-with-rule
+  [this data]
+  (let [{:keys [body settings]} this
+        {:keys [message pass-nill?]} settings]
+    (when (go? data pass-nill?)
+      (when-not (true? (body settings data))
+        (message settings data)))))
 
-(vc/defrule max-length
-  {:threshold -1
-   :message (fn [{:keys [threshold]} value]
-              (str "Value's length is above or equal to threshold. "
-                   "Value: " value "."
-                   "Threshold: " threshold "."))}
-  [{:keys [threshold]} value]
-  (or (= threshold -1) (< (count value) threshold)))
+(defn- construct-rule
+  [this opts]
+  (update-in this [:settings] into opts))
 
-(vc/defrule int-only
-  {:message (fn [_ value]
-              (str "Value should be an int: " value))}
-  [_ value]
-  (integer? value))
+(defrecord Rule [body settings]
+  ValidationFn
+  (validate [this data]
+    (validate-with-rule this data))
+  (construct [this data]
+    (construct-rule this data)))
 
-(vc/defrule min-value
-  {:threshold -1
-   :message (fn [{:keys [threshold]} value]
-              (str "Value is below or equal to threshold. "
-                   "Value: " value "."
-                   "Threshold: " threshold "."))}
-  [{:keys [threshold]} value]
-  (or (= threshold -1) (> value threshold)))
+(defn rule?
+  [r]
+  (instance? enigma.doc.validator.rule.Rule r))
 
-(vc/defrule max-value
-  {:threshold -1
-   :message (fn [{:keys [threshold]} value]
-              (str "Value's length is above or equal to threshold. "
-                   "Value: " value "."
-                   "Threshold: " threshold "."))}
-  [{:keys [threshold]} value]
-  (or (= threshold -1) (< value threshold)))
-
-(vc/defrule vec-only
-  {:message (fn [_ value]
-              (str "Value is not a vector: " value "."))}
-  [_ value]
-  (vector? value))
-
-(vc/defrule map-only
-  {:message (fn [_ value]
-              (str "Value is not a map: " value "."))}
-  [_ value]
-  (map? value))
-
-(vc/defrule set-only
-  {:message (fn [_ value]
-              (str "Value is not a set: " value "."))}
-  [_ value]
-  (set? value))
-
-(vc/defrule cannot-empty
-  {:message (fn [_ value]
-              (str "Value is empty: " value "."))}
-  [_ value]
-  (not (empty? value)))
-
-(vc/defrule pos-only
-  {:message (fn [_ value]
-              (str "Value is not positive: " value "."))}
-  [_ value]
-  (pos? value))
-
-(vc/defrule neg-only
-  {:message (fn [_ value]
-              (str "Value is not negative: " value "."))}
-  [_ value]
-  (neg? value))
-
-(vc/defrule date-only
-  {:message (fn [_ value]
-              (str "Value is not a date. "
-                   "Value: " value ". "
-                   "Type: " (type value)))}
-  [_ value]
-  (instance? java.util.Date value))
-
-(vc/defrule regex
-  {:regex-config #"."
-   :message (fn [{:keys [regex-config]} value]
-              (str "Value didn't match with the regex given. "
-                   "Value: " value ". "
-                   "Regex: " regex-config "."))}
-  [{:keys [regex-config]} value]
-  (and (string? value) (boolean (re-matches regex-config value))))
-
-(vc/defrule email-only
-  {:message (fn [_ value]
-               (str "Value is not email-compatible: " value "."))}
-  [_ value]
-  (let [regex-config #"[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.+_-]+\.[a-zA-Z]{2,4}"]
-    (-> regex
-        (vc/construct-rule {:regex-config regex-config})
-        (vc/-validate-rules value)
-        boolean)))
-
-(vc/defrule boolean-only
-  {:message (fn [_ value]
-              (str "Value is not a boolean: " value "."))}
-  [_ value]
-  (or (true? value) (false? value)))
-
-(vc/defrule slug-only
-  {:message (fn [_ value]
-              (str "Value is not a slug-compatible: " value "."))}
-  [_ value]
-  (let [regex-config #"^[a-z0-9]+(?:-[a-z0-9]+)*$"]
-    (-> regex
-        (vc/construct-rule {:regex-config regex-config})
-        (vc/-validate-rules value)
-        boolean)))
-
-(vc/defrule oid-only
-  {:message (fn [_ value]
-              (str "Value is not an instance of ObjectId. "
-                   "Value: " value ". "
-                   "Type: " (if-not (nil? value)
-                              (type value)
-                              "nil") "."))}
-  [_ value]
-  (instance? org.bson.types.ObjectId (type value)))
-
-(vc/defrule every
-  {:message (fn [_ v] "Value doesn't satisfy the given :every-fn.")}
-  [{:keys [every-fn]} value]
-  (every? every-fn value))
-
-(vc/defrule any
-  {:message (fn [_ v] "Value doesn't satisfy the given :any-fn.")}
-  [{:keys [any-fn]} value]
-  (not (not-any? any-fn value)))
+(defmacro defrule
+  [name & args]
+  (let [[docstring args] (if (-> args first string?)
+                           [(first args) (next args)]
+                           [nil args])
+        [settings args] (if (-> args first map?)
+                          [(into -default-settings (first args)) (next args)]
+                          [-default-settings args])
+        [args body] [(first args) (next args)]]
+    `(do
+       (def ~name
+         (let [body# (fn [~@args] ~@body)]
+           (->Rule body# ~settings)))
+       (alter-meta! (var ~name)
+                    assoc
+                    :doc ~docstring))))
