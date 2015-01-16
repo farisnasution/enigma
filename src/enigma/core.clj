@@ -64,11 +64,11 @@ q
 ;; record punya body, settings
 ;; recordnya adalah -> Rule, Rules, Validator
 
-(deffield string-field
-  required
-  string-only
-  not-empty
-  max-length
-  min-length
-  [{:keys [minn maxx required blank]} rules]
-  (construct max-length {:min-length }))
+;; (deffield string-field
+;;   required
+;;   string-only
+;;   not-empty
+;;   max-length
+;;   min-length
+;;   [{:keys [minn maxx required blank]} rules]
+;;   (construct max-length {:min-length }))
