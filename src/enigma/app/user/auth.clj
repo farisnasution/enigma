@@ -15,4 +15,4 @@
                                    (get-in ctx [:request :identity])))
     :handle-forbidden (fn [_] (throw-unauthorized))})
   ([]
-   (role-based-authorization #{:user})))
+   (auth-handler #{:user})))
