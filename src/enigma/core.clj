@@ -4,7 +4,8 @@
             [buddy.auth.backends.token :refer [signed-token-backend parse-authorization-header]]
             [buddy.auth.backends.session :refer [session-backend]]
             [buddy.sign.generic :refer [loads dumps]]
-            [buddy.auth :refer [authenticated? throw-unauthorized]]))
+            [buddy.auth :refer [authenticated? throw-unauthorized]])
+  (:use [liberator.core :only [defresource]]))
 
 (defn foo
   "I don't do a whole lot."
@@ -72,3 +73,15 @@ q
 ;;   min-length
 ;;   [{:keys [minn maxx required blank]} rules]
 ;;   (construct max-length {:min-length }))
+
+(defresource my-resource
+  {:allowed-methods [:post]
+   :post! (fn [ctx]
+            {:bah "faris"})
+   :handle-created (fn [{:keys [bah]}]
+                     bah)
+   :handle-ok (fn [ctx]
+                "fobar")})
+
+(my-resource {:request-method :post
+              :uri "/faris"})
