@@ -2,7 +2,8 @@
   (:require [monger [query :as mq]
                     [collection :as mc]])
   (:use [enigma.util :only [->int]]
-        [enigma.resource.util :only [body-type]]))
+        [enigma.resource.util :only [body-type]]
+        [enigma.doc.mapper :only [process]]))
 
 (def -GETs-default-settings
   {:page 0
@@ -38,9 +39,8 @@
 
 (defn- extract-query
   [default user]
-  (fn [request]
-    (let [params (:params request)
-          kwargs (dissoc params [:page :per-page :order])
+  (fn [{:keys [params]}]
+    (let [kwargs (dissoc params [:page :per-page :order])
           checker-fn (check-all-value default user params)
           current-page (checker-fn page-good? :page)
           current-per-page (checker-fn per-page-good? :per-page)
@@ -50,22 +50,25 @@
 (defn malformed-fn
   [saveable-mapper validator]
   (fn [{:keys [request]}]
-    (let [current-type (body-type request)
-          body (:body request)]
-      (condp = current-type
-        :single (let [acceptable-body (saveable-mapper body)
-                      error (validator acceptable-body)]
-                  (if (nil? error)
-                    [false {:body acceptable-body
-                            :body-type :single}]
-                    [true {:error error}]))
-        :list (let [acceptable-bodies (map saveable-mapper body)
-                    errors (map validator acceptable-bodies)]
-                (if (every? nil? errors)
-                  [false {:body acceptable-bodies
-                          :body-type :list}]
-                  [true {:error errors}]))
-        nil [true {:error "Body malformed."}]))))
+    (if (= :post (:request-method request))
+      (let [current-type (body-type request)
+            body (:body request)]
+        (condp = current-type
+          :single (let [acceptable-body (process saveable-mapper body)
+                        error (validator acceptable-body)]
+                    (if (nil? error)
+                      [false {:body acceptable-body
+                              :current-body-type :single}]
+                      [true {:error error}]))
+          :list (let [acceptable-bodies (map (fn [d]
+                                               (process saveable-mapper d)) body)
+                      errors (map validator acceptable-bodies)]
+                  (if (every? nil? errors)
+                    [false {:body acceptable-bodies
+                            :current-body-type :list}]
+                    [true {:error errors}]))
+          nil [true {:error "Body malformed."}]))
+      [false {}])))
 
 (defn- get-entity-fn
   [db-fn coll-name jsonable-mapper page per-page order]
@@ -81,13 +84,14 @@
                            (mq/find kwargs)
                            (mq/sort {:_id c-order})
                            (mq/paginate :page c-page :per-page c-per-page))]
-        (map jsonable-mapper query-result)))))
+        (map (fn [qr]
+               (process jsonable-mapper qr)) query-result)))))
 
 (defn- post-entity-fn
   [db-fn coll-name]
-  (fn [{:keys [body body-type request]}]
+  (fn [{:keys [body current-body-type request]}]
     (let [db-instance (db-fn request)]
-      (condp = body-type
+      (condp = current-body-type
         :single (mc/insert db-instance coll-name body)
         :list (mc/insert-batch db-instance coll-name body)))))
 
@@ -104,12 +108,13 @@
 
 (defn list-create-resource
   [db-fn coll-name j-mapper s-mapper validator page per-page order]
-  (base-list-create-resource :get-entity-fn (get-entity-fn db-fn
-                                                           coll-name
-                                                           j-mapper
-                                                           page
-                                                           per-page
-                                                           order)
-                             :post-entity-fn (post-entity-fn db-fn coll-name)
-                             :malformed-fn (malformed-fn s-mapper
-                                                         validator)))
+  (base-list-create-resource
+   :get-entity-fn (get-entity-fn db-fn
+                                 coll-name
+                                 j-mapper
+                                 page
+                                 per-page
+                                 order)
+   :post-entity-fn (post-entity-fn db-fn coll-name)
+   :malformed-fn (malformed-fn s-mapper
+                               validator)))

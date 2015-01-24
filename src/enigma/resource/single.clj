@@ -1,6 +1,8 @@
 (ns enigma.resource.single
   (:require [monger [collection :as mc]])
-  (:use [enigma.util :only [->oid]]))
+  (:use [enigma.util :only [->oid]]
+        [enigma.doc.mapper :only [process]]
+        [enigma.doc.validator.core :only [validate]]))
 
 (defn- exists-fn
   [db-fn coll-name id]
@@ -18,7 +20,7 @@
 (defn- get-entity-fn
   [jsonable-mapper]
   (fn [{:keys [entity]}]
-    (jsonable-mapper entity)))
+    (process jsonable-mapper entity)))
 
 (defn- put-entity-fn
   [db-fn coll-name id]
@@ -29,20 +31,23 @@
 
 (defn- malformed-fn
   [saveable-mapper validator id]
-  (fn [ctx]
-    (let [body (-> ctx :request :body)
-          acceptable? (map? body)]
-      (if-not acceptable?
-        [true {:error "Body malformed."}]
-        (let [acceptable-body (saveable-mapper body)
-              id-equal? (= id (:_id acceptable-body))]
-          (if-not id-equal?
-            [true {:error "Body _id is not the same with the target url."}]
-            (let [error (validator acceptable-body)]
-              (if (nil? error)
-                [false {:body acceptable-body
-                        :body-type :single}]
-                [true {:error error}]))))))))
+  (fn [{:keys [request]}]
+    (if (or (= :post (:request-method request))
+            (= :put (:request-method request)))
+      (let [body (:body request)
+            acceptable? (map? body)]
+        (if-not acceptable?
+          [true {:error "Body malformed."}]
+          (let [acceptable-body (process saveable-mapper body)
+                id-equal? (= id (:_id acceptable-body))]
+            (if-not id-equal?
+              [true {:error "Body _id is not the same with the target url."}]
+              (let [error (validate validator acceptable-body)]
+                (if (nil? error)
+                  [false {:body acceptable-body
+                          :body-type :single}]
+                  [true {:error error}]))))))
+      [false {}])))
 
 (defn- delete-entity-fn
   [db-fn coll-name id]
