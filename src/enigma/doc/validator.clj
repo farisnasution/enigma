@@ -62,21 +62,21 @@
                            [nil args])
         [settings args] (if (-> args first map?)
                           [(first args) (next args)]
-                          [-default-settings args])
-        [parent args] (if (-> args first validator?)
-                        [(first args) (next args)]
-                        [{} args])]
+                          [-default-settings args])]
     `(do
        (def ~name
-         (let [parent-body# (:body ~parent)
-               parent-settings# (:settings ~parent)
+         (let [args# (list ~@args)
+               [parent# args#] (if (-> args# first validator?)
+                                 [(first args#) (next args#)]
+                                 [{} args#])
+               {parent-body# :body parent-settings# :settings} parent#
                body# (if-not (nil? parent-body#)
-                       (into parent-body# (hash-map ~@args))
-                       (hash-map ~@args))
+                       (into parent-body# (apply hash-map args#))
+                       (apply hash-map args#))
                settings# (if-not (nil? parent-settings#)
                            (into parent-settings# ~settings)
                            ~settings)]
            (->Validator body# settings#)))
-       (alter-meta (var ~name)
-                   assoc
-                   :doc ~docstring))))
+       (alter-meta! (var ~name)
+                    assoc
+                    :doc ~docstring))))
