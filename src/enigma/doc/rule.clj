@@ -160,4 +160,4 @@
 (vr/defrule any
   {:message (fn [_ v] "Value doesn't satisfy the given :any-fn.")}
   [{:keys [any-fn]} value]
-  (not (not-any? any-fn value)))
+  (some any-fn value))
