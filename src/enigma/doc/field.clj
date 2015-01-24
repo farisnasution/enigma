@@ -71,6 +71,17 @@
     {:required (construct required {:pass-nill? required?})
      :cannot-empty (construct cannot-empty can-empty?)}))
 
+(vf/deffield set-field
+  :required r/required
+  :set-only r/set-only
+  :cannot-empty r/cannot-empty
+  [{:keys [required cannot-empty]}
+   {:keys [required? can-empty?]}]
+  (let [required? (extract-required required required?)
+        can-empty? (extract-settings cannot-empty can-empty? [:can?])]
+    {:required (construct required {:pass-nill? required?})
+     :cannot-empty (construct cannot-empty can-empty?)}))
+
 (vf/deffield map-field
   :required r/required
   :map-only r/map-only
@@ -123,7 +134,3 @@
    {:keys [required?]}]
   (let [required? (extract-required required required?)]
     {:required (construct required {:pass-nill? required?})}))
-
-;; yang bisa di extend
-;; mapper
-;; validator
