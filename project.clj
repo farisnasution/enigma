@@ -1,5 +1,5 @@
-(defproject enigma "0.1.0"
-  :description "HTTP Server library"
+(defproject enigma "0.1.1"
+  :description "A collection of utility to simplify building a HTTP server."
   :url "https://github.com/farisnasution/enigma"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
