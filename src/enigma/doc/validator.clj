@@ -17,7 +17,7 @@
   (fn [k]
     (let [func (get map-body k)
           data (get map-data k)
-          result (func data)]
+          result (validate func data)]
       (when-not (nil? result)
         {k result}))))
 
