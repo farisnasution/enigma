@@ -10,16 +10,8 @@
 (defmapper user->saveable
   {:roles true}
   bm/base-saveable-mapper
-  :roles (fn [_ data]
-           (if (nil? data)
-             #{:user}
-             (set data)))
   :password (fn [_ data]
               (hs/make-password data)))
 
 (defmapper user->updateable
-  bm/base-saveable-mapper
-  :roles (fn [_ data]
-           (if (nil? data)
-             #{:user}
-             (set data))))
+  bm/base-saveable-mapper)
