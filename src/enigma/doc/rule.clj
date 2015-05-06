@@ -108,7 +108,7 @@
   (instance? java.util.Date value))
 
 (vr/defrule regex
-  {:regex-config #"."
+  {:regex-config #".+"
    :message (fn [{:keys [regex-config]} value]
               (str "Value didn't match with the regex given. "
                    "Value: " value ". "
