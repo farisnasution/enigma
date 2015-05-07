@@ -17,13 +17,16 @@
 
 (defn- go-process
   [{:keys [body settings]} data]
-  (let [ks (keys body)
-        process?-fn (process? settings data)
-        go-process-inner-fn (go-process-inner body data)]
-    (->> ks
-         (filter process?-fn)
-         (map go-process-inner-fn)
-         (apply merge))))
+  (when (map? data)
+    (if-not (empty? data)
+      (let [ks (keys body)
+            process?-fn (process? settings data)
+            go-process-inner-fn (go-process-inner body data)]
+        (->> ks
+             (filter process?-fn)
+             (map go-process-inner-fn)
+             (apply merge)))
+      {})))
 
 (defprotocol MappingFn
   (process [this data]))
