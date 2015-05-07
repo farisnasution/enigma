@@ -85,7 +85,7 @@
    :message (fn [_ value]
               (str "Value is empty: " value "."))}
   [{:keys [can?]} value]
-  (or (true? can?) (boolean (seq val))))
+  (or (true? can?) (boolean (seq value))))
 
 (vr/defrule pos-only
   {:message (fn [_ value]
