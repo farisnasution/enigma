@@ -1,4 +1,4 @@
-(defproject enigma "0.1.1"
+(defproject enigma "0.1.2"
   :description "A collection of utility to simplify building a HTTP server."
   :url "https://github.com/farisnasution/enigma"
   :license {:name "Eclipse Public License"
