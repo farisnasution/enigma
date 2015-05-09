@@ -126,6 +126,16 @@
         (validate value)
         boolean)))
 
+(vr/defrule url-only
+  {:message (fn [_ value]
+              (str "Value is not url-compatile: " value "."))}
+  [_ value]
+  (let [regex-config #"(\b(https?|ftp|file)://)?[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]"]
+    (-> regex
+        (construct {:regex-config regex-config})
+        (validate value)
+        boolean)))
+
 (vr/defrule bool-only
   {:message (fn [_ value]
               (str "Value is not a boolean: " value "."))}
@@ -141,16 +151,6 @@
         (construct {:regex-config regex-config})
         (validate value)
         boolean)))
-
-(vr/defrule oid-only
-  {:message (fn [_ value]
-              (str "Value is not an instance of ObjectId. "
-                   "Value: " value ". "
-                   "Type: " (if-not (nil? value)
-                              (type value)
-                              "nil") "."))}
-  [_ value]
-  (instance? org.bson.types.ObjectId (type value)))
 
 (vr/defrule every
   {:message (fn [_ v] "Value doesn't satisfy the given :every-fn.")}
