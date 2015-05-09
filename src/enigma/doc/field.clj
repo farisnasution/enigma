@@ -111,6 +111,15 @@
   (let [required? (extract-required required required?)]
     {:required (construct required {:pass-nill? required?})}))
 
+(vf/deffield url-field
+  :required r/required
+  :str-only r/str-only
+  :url-only r/url-only
+  [{:keys [required]}
+   {:keys [required?]}]
+  (let [required? (extract-required required required?)]
+    {:required (construct required {:pass-nill? required?})}))
+
 (vf/deffield date-field
   :required r/required
   :date-only r/date-only
@@ -122,14 +131,6 @@
 (vf/deffield bool-field
   :required r/required
   :bool-only r/bool-only
-  [{:keys [required]}
-   {:keys [required?]}]
-  (let [required? (extract-required required required?)]
-    {:required (construct required {:pass-nill? required?})}))
-
-(vf/deffield oid-field
-  :required r/required
-  :oid-only r/oid-only
   [{:keys [required]}
    {:keys [required?]}]
   (let [required? (extract-required required required?)]
