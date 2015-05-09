@@ -1,11 +1,4 @@
-(ns enigma.util
-  (:import org.bson.types.ObjectId))
-
-(defn ->oid
-  ([identifier]
-   (ObjectId. identity))
-  ([]
-   (ObjectId.)))
+(ns enigma.util)
 
 (defn now
   []
