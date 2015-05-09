@@ -59,14 +59,15 @@ Update readme on how to create custom field and rule.
              "I like to code!")))
              
 (process greetings-mapper {})     
-;; {:hobby "I like to code1"}
+;; {:hobby "I like to code!"}
 
 (process greetings-mapper {:name "foobar"
                            :age 15
                            :unchanged "jolly good"})
 ;; {:name "Hello my name is foobar"
     :age "I'm 15 years old"
-    :hobby "I like to code!"}
+    :hobby "I like to code!
+    :unchaned "jolly good""}
 ```
 
 ## License
