@@ -1,12 +1,9 @@
-(defproject enigma "0.1.2"
-  :description "A collection of utility to treat map as an Object."
+(defproject enigma "0.1.3"
+  :description "A DSL to validate and modify map."
   :url "https://github.com/farisnasution/enigma"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [liberator "0.12.2"]
-                 [com.novemberain/monger "2.0.1"]
-                 [buddy "0.2.3"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]]
   :profiles {:dev {:dependencies [[speclj "3.1.0"]]
                    :plugins [[jonase/eastwood "0.2.1"]
                              [lein-ancient "0.6.7"]
