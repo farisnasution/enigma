@@ -24,7 +24,7 @@
       (->> ks
            (filter process?-fn)
            (map go-process-inner-fn)
-           (apply merge)))))
+           (apply merge data)))))
 
 (defprotocol MappingFn
   (process [this data]))
